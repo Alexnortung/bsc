@@ -100,6 +100,12 @@ The convolutional operation works by taking the dotproduct of the kernel with a 
 
 [INSERT FIGURE]
 
+To put it as a formula for the 2 dimensional image, let $\bm{X}$ be the input, $\bm{Y}$ the output, $C$ the number of channels, $\bm{K}$ the kernel, $k_x$ and $k_y$ the size of the kernel and $s_x$ and $s_y$ be the stride which the kernel is moving through the image.
+
+$$Y_{ijc} = \sum^{i + k_x}_{i_2 = i \cdot s_x} \sum^{j + k_y}_{j_2 = j \cdot s_y} X_{i_2j_2c} K_{i_2j_2c} $$
+
+Where $i$ is the index in the first image dimension, $j$ is the index in the second image dimension and $c$ is the current chnanel.
+
 \subsection{Maxpooling layer}
 
 \subsection{Netowork training}
