@@ -1,0 +1,92 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[danish]{babel}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage[makeroom]{cancel}
+\usepackage{float}
+\usepackage{hyperref}
+
+\lstset{
+    language=Python,
+    numbers=left,
+    numbersep=5pt,
+    xleftmargin=1cm,
+    keywordstyle=\color{red}
+}
+
+\floatplacement{table}{H}
+\floatplacement{figure}{H}
+
+\title{Implementation of a library for convolutional neural networks in futhark}
+\author{Alexander Nortung}
+\date{2022-06-13}
+
+\begin{document}
+
+\maketitle
+
+\section{Neural networks}%
+\label{sec:Neural networks}
+
+A neural network is a machine learning model, that consists of a set of layers. Neural networks are used to recognize patterns in data and be able to classify it. The way it works is by having some input data that can be used as a input to the network, and then be propageted through each layer. In an untrained network the output would not make much sense, but by training the network with known input and expected output data, a network can give quite accurate results.
+
+\subsection{Fully connected layer}%
+\label{sub:Fully connected layer}
+
+The fully connected layer is also known as a dense layer or a linear layer.
+This layer can be represented as a vector of inputs $\bm{x}$, where each input has a "connection" to each output. Where the output can also be represented as a vector $\bm{y}$
+In [TODO: INSERT FIGURE] it is illustrated what is the input, a connection and the output.
+
+Each connection has a weight which is multiplied to the value from the input.
+The connections can be represented as a matrix $\bm{W}$, which will now be referred to as the weights.
+The weight $w_{ij}$ corresponds to the weight between input $i$ and output $j$.
+
+When the data is propagated through this layer, it goes from the input through a connection, where it is multiplied by the weight and then each value that ends in that output is summed together.
+
+$$y''_j = \sum_{i=0}^D w_{ji}x_i  $$
+
+Once the data has reached the output, there should also be added a bias, which can make the layer be able to fit better to the desired result.
+The bias $\bm{b}$ can be represented as a vector with the same length as the output $M$.
+
+$$y'_j = b_j + \sum_{i=0}^D w_{ji}x_i$$
+
+The vector $\bm{y'}$ can thus be represented as a vector to matrix multiplication and adding the bias vector
+
+$$\bm{y'} = \bm{b} + \bm{W}\bm{x}$$
+
+At last there should be applied an activation function, this will be denoted $\sigma$.
+So $y_j$ becomes
+
+$$y_j = \sigma \left(y'_j\right)$$
+
+\subsection{Activation functions}%
+\label{sub:Activation functions}
+
+Activation functions have an important role in neural networks, since they can introduce non-linearity. This is important when training the network.
+Some common activation functions can be seen in \autoref{tab:activation}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|}\hline
+\textbf{Function} & $\bm{\sigma}$ \\\hline
+tanh     & $\frac{e^x - e^{-x}}{e^x + e^{-x}}$ \\\hline
+ReLU     & $max(0, x)$ \\\hline
+sigmoid  & $\frac{1}{1+e^{-x}}$ \\\hline
+softmax  & $\frac{e^x}{\sum^K_{k=1} e^{z_k}}$ \\\hline
+\end{tabular}
+\caption{A list of common activation functions.}
+\label{tab:activation}
+\end{table}
+
+\subsection{Multilayer perceptron}%
+\label{sub:Multilayer perceptron}
+
+A multiplayer perceptron is a neural network consisting of only 
+
+
+
+\end{document}
