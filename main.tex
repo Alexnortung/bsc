@@ -85,7 +85,29 @@ softmax  & $\frac{e^x}{\sum^K_{k=1} e^{z_k}}$ \\\hline
 \subsection{Multilayer perceptron}%
 \label{sub:Multilayer perceptron}
 
-A multiplayer perceptron is a neural network consisting of only 
+A multiplayer perceptron is a neural network consisting of only fully connected layers.
+
+\subsection{Convolutional layer}
+
+A neural network with one or more convolutional layers are called a convolutional neural network.
+The convolutional layer is often takes a three dimensional input, where the two dimensions can be an image and the third dimension is the channels. The channels of an image is most often the different color channels such as red green and blue.
+
+The convolutional layer works by having a kernel that convolves through the input. The kernel should not be confused with kernels in cuda, it is also known as a filter. The kernel has the same dimensions as the input, but the sizes of the image dimensions of the kernel should be less than or equal to the image dimensions of the input. This can be seen on [TODO: INSERT FIGURE].
+
+[INSERT FIGURE]
+
+The convolutional operation works by taking the dotproduct of the kernel with a slice of the input, then adding a bias and applying the activation function. This is done for each channel with the same slice. These values are then stored in the output. This is repeated for a new slice until the the end of the input. The operaion is visualized in [TODO: INSERT FIGURE].
+
+[INSERT FIGURE]
+
+\subsection{Maxpooling layer}
+
+\subsection{Netowork training}
+
+
+
+\subsection{Network training}
+
 
 
 
