@@ -83,9 +83,45 @@ The convolutional layer works by having a kernel that convolves through the inpu
 \end{figure}
 
 
-The convolutional operation works by taking the dotproduct of the kernel with a slice of the input, then adding a bias and applying the activation function. This is done for each channel with the same slice. These values are then stored in the output. This is repeated for a new slice until the the end of the input. The operaion is visualized in [TODO: INSERT FIGURE].
+The convolutional operation works by taking the dotproduct of the kernel with a slice of the input, then adding a bias and applying the activation function. This is done for each channel with the same slice. These values are then stored in the output. This is repeated for a new slice until the the end of the input. The operaion is visualized in \autoref{fig:conv_operation}.
 
-[INSERT FIGURE]
+\begin{figure}
+    \centering
+    $$\begin{bmatrix}
+        \color{red} X_{11} & \color{red} X_{12} & X_{13} \\
+        \color{red} X_{21} & \color{red} X_{22} & X_{23} \\
+        X_{31} & X_{32} & X_{33} 
+    \end{bmatrix} \Rightarrow \begin{bmatrix}
+        \color{red} X_{11} K_{11} + X_{12} K_{12} + X_{21} K_{21} + X_{22} K_{22} & \\
+         &
+    \end{bmatrix}$$\\
+    $$\begin{bmatrix}
+        X_{11} & \color{red} X_{12} & \color{red} X_{13} \\
+        X_{21} & \color{red} X_{22} & \color{red} X_{23} \\
+        X_{31} & X_{32} & X_{33} 
+    \end{bmatrix} \Rightarrow \begin{bmatrix}
+         Y''_{11} &\color{red} X_{12} K_{12} + X_{13} K_{13} + X_{22} K_{22} + X_{23} K_{23} \\
+         &
+    \end{bmatrix}$$\\
+    $$\begin{bmatrix}
+        X_{11} & X_{12} & X_{13} \\
+        \color{red} X_{21} & \color{red} X_{22} & X_{23} \\
+        \color{red} X_{31} & \color{red} X_{32} & X_{33} 
+    \end{bmatrix} \Rightarrow \begin{bmatrix}
+        Y''_{11} & Y''_{12} \\
+        \color{red} X_{21} K_{21} + X_{22} K_{22} + X_{31} K_{31} + X_{32} K_{32} & 
+    \end{bmatrix}$$\\
+    $$\begin{bmatrix}
+        X_{11} & X_{12} & X_{13} \\
+        X_{21} & \color{red} X_{22} & \color{red} X_{23} \\
+        X_{31} & \color{red} X_{32} & \color{red} X_{33} 
+    \end{bmatrix} \Rightarrow \begin{bmatrix}
+         Y''_{11} & Y''_{12} \\
+         Y''_{21} & \color{red} X_{22} K_{22} + X_{23} K_{23} + X_{32} K_{32} + X_{33} K_{33}
+    \end{bmatrix}$$\\
+    \caption{A visualization of the convolutional layer operation. The red numbers on the left are the input values that are currently in the window. The red number on the right is the result of the dotproduct of the window and the kernel.}
+    \label{fig:conv_operation}
+\end{figure}
 
 To put it as a formula for the 2 dimensional image, let $\bm{X}$ be the input, $\bm{Y}$ the output, $C$ the number of channels, $\bm{K}$ the kernel, $k_x$ and $k_y$ the size of the kernel and $s_x$ and $s_y$ be the stride which the kernel is moving through the image.
 
