@@ -106,7 +106,7 @@ The convolutional operation works by taking the dotproduct of the kernel with a 
     $$\begin{bmatrix}
         X_{11} & X_{12} & X_{13} \\
         \color{red} X_{21} & \color{red} X_{22} & X_{23} \\
-        \color{red} X_{31} & \color{red} X_{32} & X_{33} 
+        \color{red} X_{31} & \color{red} X_{32} & X_{33}
     \end{bmatrix} \Rightarrow \begin{bmatrix}
         Y''_{11} & Y''_{12} \\
         \color{red} X_{21} K_{21} + X_{22} K_{22} + X_{31} K_{31} + X_{32} K_{32} & 
@@ -114,7 +114,7 @@ The convolutional operation works by taking the dotproduct of the kernel with a 
     $$\begin{bmatrix}
         X_{11} & X_{12} & X_{13} \\
         X_{21} & \color{red} X_{22} & \color{red} X_{23} \\
-        X_{31} & \color{red} X_{32} & \color{red} X_{33} 
+        X_{31} & \color{red} X_{32} & \color{red} X_{33}
     \end{bmatrix} \Rightarrow \begin{bmatrix}
          Y''_{11} & Y''_{12} \\
          Y''_{21} & \color{red} X_{22} K_{22} + X_{23} K_{23} + X_{32} K_{32} + X_{33} K_{33}
@@ -123,16 +123,51 @@ The convolutional operation works by taking the dotproduct of the kernel with a 
     \label{fig:conv_operation}
 \end{figure}
 
-To put it as a formula for the 2 dimensional image, let $\bm{X}$ be the input, $\bm{Y}$ the output, $C$ the number of channels, $\bm{K}$ the kernel, $k_x$ and $k_y$ the size of the kernel and $s_x$ and $s_y$ be the stride which the kernel is moving through the image.
+To put it as a formula for the 2 dimensional image,
+let $\bm{X}$ be the input,
+$\bm{Y}$ be the output.
+$\bm{b}$ be a vector of the bias with the length equal to the number of output channels.
+$C_{in}$ the number of input channels.
+$\bm{K}$ the kernel.
+$k_x$ and $k_y$ the size of the kernel and $s_x$ and $s_y$ be the stride which the kernel is moving through the image.
 
-$$Y_{ijc} = \sum^{i + k_x}_{i_2 = i \cdot s_x} \sum^{j + k_y}_{j_2 = j \cdot s_y} X_{i_2j_2c} K_{i_2j_2c} $$
+$$Y_{ijc_{out_l}} = b_{c_{out_l}} + \sum^{C_{in}}_{c = 1} \sum^{i \cdot s_x + k_x}_{i_2 = i \cdot s_x} \sum^{j \cdot s_y + k_y}_{j_2 = j \cdot s_y} X_{i_2j_2c} K_{i_2j_2c} $$
 
-Where $i$ is the index in the first image dimension, $j$ is the index in the second image dimension and $c$ is the current chnanel.
+Where $i$ is the index in the first image dimension, $j$ is the index in the second image dimension and $c_{out_l}$ is the current output chnanel.
+
+$i$, $j$ and $l$ are in the following ranges
+
+$$i = 1, ..., \frac{n_x - k_x}{s_x} + 1$$
+$$j = 1, ..., \frac{n_y - k_y}{s_y} + 1$$
+$$l = 1, ..., C_{out}$$
+
+Where $n_x$ and $n_y$ are the image dimensions.
+
+This means the dimensions of $\bm{Y}$ is
+
+$$\left(C_{out}\right) \times \left(\frac{n_x - k_x}{s_x} + 1\right) \times \left(\frac{n_y - k_y}{s_y} + 1\right) $$
 
 \subsection{Maxpooling layer}
 
-\subsection{Netowork training}
+The max pooling layer splits the input into different windows, and outputs the maximum value in each window. The operation is more easily understood in \autoref{fig:max_pool}.
 
+\begin{figure}[htpb]
+    \centering
+    $$\begin{bmatrix}
+        \color{red}1 & \color{red} 2 & \color{green} 3 & \color{green} 4 \\
+        \color{red}8 & \color{red}9 & \color{green}10 & \color{green}11 \\
+        \color{blue}7 & \color{blue}1 & \color{magenta}2 & \color{magenta}6 \\
+        \color{blue}2 & \color{blue}1 & \color{magenta}9 & \color{magenta}3
+        \end{bmatrix} \Rightarrow \begin{bmatrix}
+        \color{red}9 & \color{green}11 \\
+        \color{blue}7 & \color{magenta}9
+        \end{bmatrix}$$
+    \caption{Illustration of a max pooling operation on a $4\times 4$ matrix with a $2\times 2$ window. The window will process the numbers of the same color and output the same color.}
+    \label{fig:max_pool}
+\end{figure}
 
+In this example the first slice will be $[1, 2, 8, 9]$, the slice is flattened for easier readability. Then the greatest number is $9$ which will be set in the output. This is repeated for the next slice and then repeated until the window reaches the end of the input.
 
 \subsection{Network training}
+
+The way the network is trained in this project is by using gradient descent
