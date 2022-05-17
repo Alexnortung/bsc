@@ -51,17 +51,14 @@ softmax  & $\frac{e^x}{\sum^K_{k=1} e^{z_k}}$ \\\hline
 \label{tab:activation}
 \end{table}
 
-\subsection{Multilayer perceptron}%
-\label{sub:Multilayer perceptron}
-
-A multiplayer perceptron is a neural network consisting of only fully connected layers.
-
 \subsection{Convolutional layer}
 
 A neural network with one or more convolutional layers are called a convolutional neural network.
-The convolutional layer is often takes a three dimensional input, where the two dimensions can be an image and the third dimension is the channels. The channels of an image is most often the different color channels such as red green and blue.
+The convolutional layer is often takes a three dimensional input, where the two dimensions can be an image and the third dimension is the channels. The channels of an image is most often the different color channels such as red, green and blue.
 
-The convolutional layer works by having a kernel that convolves through the input. The kernel should not be confused with kernels in cuda, it is also known as a filter. The kernel has the same dimensions as the input, but the sizes of the image dimensions of the kernel should be less than or equal to the image dimensions of the input. This can be seen on \autoref{fig:conv_input_and_kernel}.
+The goal of a convolutional layer is to detect certain features, in the given input. The network will be able to detect more and more complex features depending on how many convolutional layers the network has.
+
+The convolutional layer works by having a kernel $\bm{K}$ that convolves through the input. The kernel should not be confused with kernels in cuda, it is also known as a filter. The kernel has the same dimensions as the input, but the sizes of the image dimensions of the kernel should be less than or equal to the image dimensions of the input. This can be seen on \autoref{fig:conv_input_and_kernel}.
 
 \begin{figure}
     \centering
@@ -168,6 +165,24 @@ The max pooling layer splits the input into different windows, and outputs the m
 
 In this example the first slice will be $[1, 2, 8, 9]$, the slice is flattened for easier readability. Then the greatest number is $9$ which will be set in the output. This is repeated for the next slice and then repeated until the window reaches the end of the input.
 
+\subsection{Loss functions}%
+\label{sub:Loss functions}
+
+To determine how close the network is at predicting something, a loss function can be used.
+The loss function works by taking the output of the network and comparing it with the expected value or label.
+
+There are different loss functions that finds the loss in different ways. Some common loss functions can be seen in [INSERT TABLE]
+
 \subsection{Network training}
 
-The way the network is trained in this project is by using gradient descent
+The goal of using a neural network is to make it correctly classify some input data. This can be done by training the network.
+The network can be trained by "optimizing" the weights for each layer. Here optimizing is referred to as giving a better result and not as code optimizing.
+One method of optimizing the network is by using gradient descent.
+The function $E$ which the gradient will be found, is the forward propagation of the network as a function of the weights, composed with a loss function, which is shown in the following formula.
+
+$$E = L(f(\bm{W}_1, \bm{W}_2, ..., \bm{W}_n))$$
+
+Where $n$ is the number of layers in the network, $\bm{W}_i$ is the weights for layer $i$ where $i = 1...n$, $L$ is a loss function and $f$ is the forward propagation.
+Gradient descent works because the loss function will be minimized, thus the weights need to change to fit the input and label data.
+
+
