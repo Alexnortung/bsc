@@ -7,14 +7,24 @@ A neural network is a machine learning model, that consists of a set of layers. 
 \label{sub:Fully connected layer}
 
 The fully connected layer is also known as a dense layer or a linear layer.
-This layer can be represented as a vector of inputs $\bm{x}$, where each input has a "connection" to each output. Where the output can also be represented as a vector $\bm{y}$
-In [TODO: INSERT FIGURE] it is illustrated what is the input, a connection and the output.
+The input can be represented as neurons and synapses, with $D$ input neurons and $M$ output neurons. Each input neuron will be connected by synapses to all output neurons.
+This layer's input can be represented as a vector $\bm{x}$ and the output can also be represented as a vector $\bm{y}$.
+In \autoref{fig:neural_network} it is illustrated what is the input, a connection and the output.
 
-Each connection has a weight which is multiplied to the value from the input.
-The connections can be represented as a matrix $\bm{W}$, which will now be referred to as the weights.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{assets/linear-layer.png}
+    \caption{An illustration of a fully connected layer, where the dotted lines means there might be more values in between.}
+    \label{fig:neural_network}
+\end{figure}
+
+
+The synapses works by having a weight which is multiplied to the value from the input.
+The weights of the synapses can be represented as a matrix $\bm{W}$, which will now be referred to as the weights.
 The weight $w_{ij}$ corresponds to the weight between input $i$ and output $j$.
+Where $i = 1, ..., D$ and $j = 1, ..., M$.
 
-When the data is propagated through this layer, it goes from the input through a connection, where it is multiplied by the weight and then each value that ends in that output is summed together.
+When data is propagated through this layer, it goes from the input through a synapse, where it is multiplied by the weight and then each value that ends in that output is summed together.
 
 $$y''_j = \sum_{i=0}^D w_{ji}x_i  $$
 
@@ -58,7 +68,7 @@ The convolutional layer is often takes a three dimensional input, where the two 
 
 The goal of a convolutional layer is to detect certain features, in the given input. The network will be able to detect more and more complex features depending on how many convolutional layers the network has.
 
-The convolutional layer works by having a kernel $\bm{K}$ that convolves through the input. The kernel should not be confused with kernels in cuda, it is also known as a filter. The kernel has the same dimensions as the input, but the sizes of the image dimensions of the kernel should be less than or equal to the image dimensions of the input. This can be seen on \autoref{fig:conv_input_and_kernel}.
+The convolutional layer works by having a kernel $\bm{K}$ that convolves through the input. The kernel should not be confused with kernels in cuda, it is also known as a filter. The kernel has the same number of dimensions as the input, but the sizes of the image dimensions of the kernel should be less than or equal to the image dimensions of the input. This can be seen on \autoref{fig:conv_input_and_kernel}.
 
 \begin{figure}
     \centering
@@ -80,7 +90,7 @@ The convolutional layer works by having a kernel $\bm{K}$ that convolves through
 \end{figure}
 
 
-The convolutional operation works by taking the dotproduct of the kernel with a slice of the input, then adding a bias and applying the activation function. This is done for each channel with the same slice. These values are then stored in the output. This is repeated for a new slice until the the end of the input. The operaion is visualized in \autoref{fig:conv_operation}.
+The convolutional operation works by taking the dotproduct of the kernel with a slice of the input, then adding a bias and applying the activation function. This is done for each channel with the same slice. These values are then stored in the output. This is repeated for a new slice until the the end of the input. The operaion is visualized in \autoref{fig:conv_operation}, the result will be $\bm{Y}''$, to get $\bm{Y}$ there needs to be added a bias and used an activation function.
 
 \begin{figure}
     \centering
@@ -88,7 +98,7 @@ The convolutional operation works by taking the dotproduct of the kernel with a 
         \color{red} X_{11} & \color{red} X_{12} & X_{13} \\
         \color{red} X_{21} & \color{red} X_{22} & X_{23} \\
         X_{31} & X_{32} & X_{33} 
-    \end{bmatrix} \Rightarrow \begin{bmatrix}
+    \end{bmatrix} \otimes K \Rightarrow \begin{bmatrix}
         \color{red} X_{11} K_{11} + X_{12} K_{12} + X_{21} K_{21} + X_{22} K_{22} & \\
          &
     \end{bmatrix}$$\\
@@ -96,7 +106,7 @@ The convolutional operation works by taking the dotproduct of the kernel with a 
         X_{11} & \color{red} X_{12} & \color{red} X_{13} \\
         X_{21} & \color{red} X_{22} & \color{red} X_{23} \\
         X_{31} & X_{32} & X_{33} 
-    \end{bmatrix} \Rightarrow \begin{bmatrix}
+    \end{bmatrix} \otimes K \Rightarrow \begin{bmatrix}
          Y''_{11} &\color{red} X_{12} K_{12} + X_{13} K_{13} + X_{22} K_{22} + X_{23} K_{23} \\
          &
     \end{bmatrix}$$\\
@@ -104,7 +114,7 @@ The convolutional operation works by taking the dotproduct of the kernel with a 
         X_{11} & X_{12} & X_{13} \\
         \color{red} X_{21} & \color{red} X_{22} & X_{23} \\
         \color{red} X_{31} & \color{red} X_{32} & X_{33}
-    \end{bmatrix} \Rightarrow \begin{bmatrix}
+    \end{bmatrix} \otimes K \Rightarrow \begin{bmatrix}
         Y''_{11} & Y''_{12} \\
         \color{red} X_{21} K_{21} + X_{22} K_{22} + X_{31} K_{31} + X_{32} K_{32} & 
     \end{bmatrix}$$\\
@@ -112,7 +122,7 @@ The convolutional operation works by taking the dotproduct of the kernel with a 
         X_{11} & X_{12} & X_{13} \\
         X_{21} & \color{red} X_{22} & \color{red} X_{23} \\
         X_{31} & \color{red} X_{32} & \color{red} X_{33}
-    \end{bmatrix} \Rightarrow \begin{bmatrix}
+    \end{bmatrix} \otimes K \Rightarrow \begin{bmatrix}
          Y''_{11} & Y''_{12} \\
          Y''_{21} & \color{red} X_{22} K_{22} + X_{23} K_{23} + X_{32} K_{32} + X_{33} K_{33}
     \end{bmatrix}$$\\
@@ -164,6 +174,29 @@ The max pooling layer splits the input into different windows, and outputs the m
 \end{figure}
 
 In this example the first slice will be $[1, 2, 8, 9]$, the slice is flattened for easier readability. Then the greatest number is $9$ which will be set in the output. This is repeated for the next slice and then repeated until the window reaches the end of the input.
+
+The maxpooling layer reduces the input, such that only the most important features are carried over to the next layer and thus reducing the number of operaitons needed for the nect layer.
+
+\subsection{Composition of layers}%
+\label{sub:Composition}
+
+A neural network does often not accomplish much with a single layer, that means the network should be a composition of layers. A simple neural network with multiple layers is a multilayer perceptron which is a network with only fully connected layers, this can be seen on \autoref{fig:multilayer_perceptron}.
+
+\begin{figure}
+    \centering
+    [TODO: INSERT FIGURE]
+    \caption{A multilayer perceptron (a neural network with only fully connected layers)}
+    \label{fig:multilayer_perceptron}
+\end{figure}
+
+But the network can be composed how the user likes it, the only restriction is that the number of outputs in one layer has to match with the number of inputs in the next layer. The input for a layer might also need to be transformed from its original shape to the input shape of the next layer.
+
+When composing the layers, the forward propagation function also changes, where the input type will not change, but the output type will be the type of the last layer.
+The new forward propagation function will be the following $g_{nnl}$
+
+$$f_{nnl} = f_l(f_{nn})$$
+
+Where $f_l$ is the forward propagation of the layer and $f_{nn}$
 
 \subsection{Loss functions}%
 \label{sub:Loss functions}
