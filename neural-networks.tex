@@ -52,10 +52,10 @@ Some common activation functions can be seen in \autoref{tab:activation}.
 \centering
 \begin{tabular}{|c|c|}\hline
 \textbf{Function} & $\bm{\sigma}$ \\\hline
-tanh     & $\frac{e^x - e^{-x}}{e^x + e^{-x}}$ \\\hline
-ReLU     & $max(0, x)$ \\\hline
-sigmoid  & $\frac{1}{1+e^{-x}}$ \\\hline
-softmax  & $\frac{e^x}{\sum^K_{k=1} e^{z_k}}$ \\\hline
+tanh     & $\frac{e^x - e^{-y'}}{e^x + e^{-y'}}$ \\\hline
+ReLU     & $max(0, y')$ \\\hline
+sigmoid  & $\frac{1}{1+e^{-y'}}$ \\\hline
+softmax  & $\frac{e^{y'}}{\sum^K_{k=1} e^{y'_k}}$ \\\hline
 \end{tabular}
 \caption{A list of common activation functions.}
 \label{tab:activation}
@@ -184,8 +184,8 @@ A neural network does often not accomplish much with a single layer, that means 
 
 \begin{figure}
     \centering
-    [TODO: INSERT FIGURE]
-    \caption{A multilayer perceptron (a neural network with only fully connected layers)}
+    \includegraphics[width=0.6\textwidth]{assets/multilayer-perceptron.png}
+    \caption{A multilayer perceptron (a neural network with only fully connected layers). Where $H1_1, ..., H1_{n1}$ are the outputs of the first layer.}
     \label{fig:multilayer_perceptron}
 \end{figure}
 
@@ -203,19 +203,33 @@ Where $f_l$ is the forward propagation of the layer and $f_{nn}$
 
 To determine how close the network is at predicting something, a loss function can be used.
 The loss function works by taking the output of the network and comparing it with the expected value or label.
+This will be relevant in the following subsection (\autoref{sub:network_training}).
 
-There are different loss functions that finds the loss in different ways. Some common loss functions can be seen in [INSERT TABLE]
+There are different loss functions that finds the loss in different ways. Some common loss functions can be seen in \autoref{tab:loss}
 
-\subsection{Network training}
+\begin{table}[ht]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Loss function}  & \textbf{L(W)} \\ \hline
+Cross entropy  & $-\sum^K_{k=1}(l_k\ ln\ y_k)$ \\ \hline
+Mean squared error & $\frac{1}{K}\sum^K_{k=1}(y_k-l_k)^2$ \\ \hline
+\end{tabular}
+\caption{Some common loss functions, where $\bm{y}$ is the output of the network and $\bm{l}$ is the expected values or labels}
+\label{tab:loss}
+\end{table}
+
+\subsection{Network training}%
+\label{sub:network_training}
 
 The goal of using a neural network is to make it correctly classify some input data. This can be done by training the network.
 The network can be trained by "optimizing" the weights for each layer. Here optimizing is referred to as giving a better result and not as code optimizing.
 One method of optimizing the network is by using gradient descent.
 The function $E$ which the gradient will be found, is the forward propagation of the network as a function of the weights, composed with a loss function, which is shown in the following formula.
 
-$$E = L(f(\bm{W}_1, \bm{W}_2, ..., \bm{W}_n))$$
+$$E(\bm{W}) = L(f(\bm{W}_1, \bm{W}_2, ..., \bm{W}_n))$$
 
 Where $n$ is the number of layers in the network, $\bm{W}_i$ is the weights for layer $i$ where $i = 1...n$, $L$ is a loss function and $f$ is the forward propagation.
 Gradient descent works because the loss function will be minimized, thus the weights need to change to fit the input and label data.
 
-
+In \autoref{sec:autodiff} it will be discussed how to find the gradient or derivative of any function, which can be used for gradient descent.

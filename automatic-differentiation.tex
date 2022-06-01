@@ -1,0 +1,11 @@
+\section{Automatic differentiation}%
+\label{sec:autodiff}
+
+In the previous \autoref{sub:network_training} it was discussed how a neural network can be trained to classify sets of data. To train the network one would need to find the derivative of the loss function. A simple way this can be done is by manually finding the derivative of each function and use those and applying the chain rule.
+
+However when looking at this from a software engineering perspective it might be much more work to find the derivative of each function and if anything is changed in any of the functions, the derivative would also have to be changed, thus requiring more maintainance.
+
+A solution to this is automatic differentiation, which is a method used by the compiler to make transformations to functions into their derivative.
+
+
+
