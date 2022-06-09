@@ -1,0 +1,160 @@
+\section{Design and implementation}
+
+The implementation was created using Futhark, Futhark is a functional language which focuses on compiling effecient parallel code.
+Futhark comes with some limitations, one being that arrays cannot be irregular or contain functions.
+If this limitation was not there, it would be easy to make an array of the functions for each layer and then use a \texttt{fold}-like operation for the forward propagation.
+
+\subsection{Design}
+
+The design idea was to implement each layer as a module that could calculate the forward propagation and update the weights given a gradient.
+The idea of combining layers into a network was part of the design early on.
+This meant that there needed to be a way to store the forward propagation function and the weights of the entire network.
+It was also important that the weights could be given as a single argument to the network, since that would be used for the automatic differentiation function \texttt{vjp}. The type of \texttt{vjp} can be seen in the following listing.
+\begin{lstlisting}
+val vjp 'a 'b : (f: a -> b) -> (x: a) -> (y': b) -> a
+\end{lstlisting}
+
+This then lead to the idea of storing the forward function and weights in a record like the following. It should also be important to store a function that can apply the gradient to the weights, in this project it is called \texttt{apply\_optimize}.
+
+\begin{lstlisting}
+type^ nn_type 'input 'output 'current_weight 'rest_weights = {
+  forward: input -> (current_weight, rest_weights) -> output,
+  apply_optimize: (current_weight, rest_weights) -> (current_weight, rest_weights) -> (current_weight, rest_weights),
+  weights: (current_weight, rest_weights)
+}
+\end{lstlisting}
+
+This means that it is easy to add a new layer to the network by simply composing the \texttt{forward} function, \texttt{apply\_optimize} function and adding the weights of the current layer to the \texttt{current\_weight} part of the \texttt{weights} tuple.
+It also means it is easy to call the forward propagation of the network with some input.
+
+In \autoref{lst:add_layer} it can be seen how layers can be composed in a simplified way.
+
+\begin{lstlisting}[caption=A simplified version of adding a layer to a network, label={lst:add_layer}]
+def add_layer (layer) (network) =
+  let {
+    apply_optimize = layer_apply_optimize,
+    forward = layer_forward,
+    weights = layer_weights,
+  } = layer
+  let { apply_optimize, weights, forward } = network
+  let new_forward = (\input (cw, rw) -> layer_forward (forward input rw) cw)
+  let new_apply_optimize = (\(cw, rw) (cg, rg) -> (layer_apply_optimize cw cg, apply_optimize rw rg)
+  in {
+    weights = (layer_weights, weights),
+    apply_optimize = new_apply_optimize,
+    forward = new_forward
+  }
+\end{lstlisting}
+
+To add layers to a network, the network needs to be initialized, the way the network is initialized is by setting the \texttt{forward} and \texttt{apply\_optimize} functions as an identity functions of the input and keep the weights as two empty tuples \texttt{((), ())))}.
+
+It is also important that layers follow the same type, so they work with the \texttt{add\_layer} function, the type of layers can be seen in the following listing.
+
+\begin{lstlisting}
+type^ layer_fwd_type 'options 'layer_input 'wb 'out = options -> layer_input -> wb -> out
+type^ layer_apply_optimize_type 't 'apply 'options 'weights = options -> apply -> weights -> weights -> weights
+type^ layer_type 't 'options 'layer_input 'wb 'shape 'out = {
+  forward: layer_fwd_type options layer_input wb out,
+  apply_optimize: layer_apply_optimize_type t options wb,
+  options: options,
+  weights: wb,
+}
+\end{lstlisting}
+
+Here \texttt{layer\_fwd\_type} is the type of the forward function inside a layer. In \texttt{layer\_type} there is also a field for \texttt{options}, this can be different for different layer type, but can as an example contain information about strides or padding.
+
+\subsection{Interface}
+
+One part of the design was to make the interface as easy to use as possible, this was attempted by adding a \texttt{shape} field for the neural network type. The intention with this field was that it could be used to define the input shape of the next layer, in such a way that the user could avoid having to manually type in the output sizes of some layers. However due to limitations of Futhark it was not possible to use a field in a record to define size types. The intended way to this would be something like the following listing.
+
+\begin{lstlisting}[caption=the \texttt{add\_layer} function but with an added field \texttt{shape}.]
+def add_layer (layer) (network) =
+  let {
+    apply_optimize = layer_apply_optimize,
+    forward = layer_forward,
+    weights = layer_weights,
+    shape = layer_shape,
+  } = layer
+  let { apply_optimize, weights, forward, shape } = network
+  let new_forward = (\input (cw, rw) -> layer_forward (forward input rw) cw)
+  let new_apply_optimize = (\(cw, rw) (cg, rg) -> (layer_apply_optimize cw cg, apply_optimize rw rg)
+  in {
+    weights = (layer_weights, weights),
+    apply_optimize = new_apply_optimize,
+    forward = new_forward,
+    shape = layer_shape
+  }
+\end{lstlisting}
+
+Here the \texttt{shape} field could define the output shape of the network and we could destructure the layer in the parameters and use the shape values in the return type.
+
+The interface for the layers will be described more in \autoref{sub:layers}
+
+\subsection{Library structure}
+
+In this section an overview of the library structure will be given.
+
+The largest part of the library is contained within one module with multiple submobules, the reason for this is that it provides a nice interface and the user of the library would not have to import each feature that they need.
+The idea is that the user can import \texttt{neural-network/neural-network} as a module that can be called \texttt{nn}, and then access close to the entire library.
+
+Layers are each defined in their own module, this makes sense since there are much functionality and many components that should only be used in one place, so naturally it makes sense to separate it it.
+Layers can be accessed by the user in \texttt{nn.layers} and are defined in the \texttt{layers/} directory.
+
+\subsection{Activation functions}
+
+Activation functions in this implementation is simple and its type is represented as the following
+
+\begin{lstlisting}[caption=The type definition of activation functions., label={lst:activation_type}]
+type^ activation_type 't = (n: i64) -> [n]t -> [n]t
+\end{lstlisting}
+
+The reason that \texttt{n} needs to be given as an argument is that otherwise Futhark might try to generalize \texttt{n}, which would result in compilation errors when having multiple layers of different output sizes.
+
+The activation functions can be accessed by the user in \texttt{nn.activation}.
+
+The user can also define their own activation functions and use them as long as they follow the type described in \autoref{lst:activation_type}.
+
+\subsection{Loss functions}
+
+The loss functions are used in a different way than activation functions. A loss function of the network can be defined be using the function \texttt{nn.make\_loss}, this function should return a function that takes an array of inputs and an array of labels and return an array of errors. The loss functions type is defined as the following
+
+\begin{lstlisting}
+type^ loss_type 'input 'labels 't = [k]input -> [k]labels -> [k]t
+\end{lstlisting}
+
+The user can also define their own loss functions if the library does not provide it. The user defined loss function can also be given to the \texttt{nn.make\_loss} function.
+
+\subsection{Optimizers}
+
+Optimizers are the modules that perform the back propagation of the network.
+This has been separated as its own module type to allow for new or future implementations of optimizers.
+
+There is implemented one optimizer, which performs gradient descent this module is called \texttt{sgd} and can be accessed in \texttt{nn.optim.sgd}.
+
+\subsection{Layers}%
+\label{sub:layers}
+% Layers
+% Unit tests
+% Interface
+
+There are implemeted three types of layers, the fully connected layer (\autoref{ssub:impl_fully_connected}), max pooling (\autoref{ssub:impl_max_pool}) and convolutional (\autoref{ssub:impl_conv}).
+To make sure the implementation works with different layers that out put different shapes and dimensions, there is also implemented a layer that transforms the output of the previous layer to the shape the user likes. This layer will be described in \autoref{ssub:impl_dimension}.
+
+In the implementation a few shorthand functions have been added to easily add basic layers to the network, these will be described in the following subsubsections.
+
+\subsubsection{Fully connected}%
+\label{ssub:impl_fully_connected}
+
+
+
+\subsubsection{Max pooling}
+\label{ssub:impl_max_pool}
+
+\subsubsection{Convolutional}
+\label{ssub:impl_conv}
+
+\subsubsection{Dimension}%
+\label{ssub:impl_dimension}
+
+
+\subsection{Resnet}
