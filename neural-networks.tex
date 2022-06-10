@@ -233,3 +233,19 @@ Where $n$ is the number of layers in the network, $\bm{W}_i$ is the weights for 
 Gradient descent works because the loss function will be minimized, thus the weights need to change to fit the input and label data.
 
 In \autoref{sec:autodiff} it will be discussed how to find the gradient or derivative of any function, which can be used for gradient descent.
+
+\subsection{Exploding gradients problem}
+
+The problem of exploding gradients refer to the fact that the gradient from the backpropagation may grow exponentially layer by layer.
+This problem can make the network significantly harder to train and maybe even impossible. This can, for example, make the application of vanilla SGD impossible \cite{exploding_gradients}.
+
+This problem can be dealt with by using normalization layers which will be discussed in \autoref{sub:norm_layers}.
+
+
+There is no well-accepted metric for determining the presence of pathological exploding gradients \cite{exploding_gradients}.
+
+\subsection{Normalizations layers}%
+\label{sub:norm_layers}
+
+
+
