@@ -234,18 +234,78 @@ Gradient descent works because the loss function will be minimized, thus the wei
 
 In \autoref{sec:autodiff} it will be discussed how to find the gradient or derivative of any function, which can be used for gradient descent.
 
-\subsection{Exploding gradients problem}
+\subsection{Exploding and vanishing gradients problem}
 
-The problem of exploding gradients refer to the fact that the gradient from the backpropagation may grow exponentially layer by layer.
+When using the backpropagation algorithm in a neural network, the gradient in some layers might be so small, that when updating the weights of the early layers, they will barely change. This problem is referred to as the vanishing gradients problem, as the gradients become so small that they almost vanish.
+This problem makes it much harder to train a network since the weights might never reach the optimal value.
+On the other hand the gradients might get so large that they move the weights way too much, such that the weights will never really hit an optimal value.
 This problem can make the network significantly harder to train and maybe even impossible. This can, for example, make the application of vanilla SGD impossible \cite{exploding_gradients}.
 
 This problem can be dealt with by using normalization layers which will be discussed in \autoref{sub:norm_layers}.
 
 
-There is no well-accepted metric for determining the presence of pathological exploding gradients \cite{exploding_gradients}.
+% There is no well-accepted metric for determining the presence of pathological exploding gradients \cite{exploding_gradients}.
 
 \subsection{Normalizations layers}%
 \label{sub:norm_layers}
 
+
+\subsection{Residual network (ResNet)}
+
+Deep convolutional neural networks have led to a series of breakthroughs for image classification \cite{resnet}.
+To solve more and more complex tasks, deeper networks seems to be more accurate.
+The problem is that the networks can not just get deeper and deeper since it seems that when a certain limit is reached accuracy is becoming saturated and after adding more layers accuracy seems to degrade.
+An obstacle to this problem has also been the problem of vanishing/exploding gradients.
+However ResNet is able to be accurate in considerably increased depth and have dealt with the problem of exploding/vanishing gradients by using normalization layers. ResNet also produces results substantially better than previous networks \cite{resnet}.
+
+In this section there will be described which methods ResNet uses and how the model is structured.
+
+% \subsubsection{Residual representation}
+
+\subsubsection{Shortcut connections}
+
+A shortcut connection is a connection that skips one or more layers and may have parameters that change the values.
+\autoref{fig:shortcut_connection} shows an example of a shortcut connection that adds the input $\bm{x}$ value of the first layer to the output of the last layer.
+Where $F(\bm{x})$ is the forward propagation of the block. The block in this case is just the two weight layers, but in general a block can have any number of layers.
+In this case the shortcut connection is an identity mapping, meaning that the connection does not change the value of $\bm{x}$ during the shortcut connection.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.55\textwidth]{assets/shortcut-connection.png}
+    \caption{A shortcut connection represented by the arching arrow. $\mathcal{F}(\bm{x})$ is the function of applying $\bm{x}$ to the two layers. $\mathcal{F}(\bm{x}) + \bm{x}$ is the value after the shortcut connection. Source: \cite{resnet}}
+    \label{fig:shortcut_connection}
+\end{figure}
+
+The benefit a shortcut connection is that it deals with the exploding/vanishing gradients problem, since it can allow the gradient to "flow" through to earlier layers, without exploding or vanishing in the same way.
+
+\subsubsection{Deep residual learning}
+
+Residual learning builds on the use of shortcut connections. 
+This is done by having shortcuts with identity mapping for every few layers.
+The shortcut connections in Eqn.(1) introduce neither extra parameter nor computation complexity \cite{resnet}.
+The only extra number of computation that is needed during residual learning is making an element-wise matrix-matrix addition, for every few layers.
+The element-wise addition is computationally cheap, thus it can be a very good trade off if it means that the network might be trained faster and it might have better accuracy.
+
+The dimensions of $\bm{x}$ and $\mathcal{F}(\bm{x})$ has to be equal, if they are not the data can be linearly projected by a matrix $\bm{W}_s$ to match the dimensions of $\bm{y} = \mathcal{F}(\bm{x}) + \bm{W}_s\bm{x}$.
+
+\subsubsection{Netwok architecture}%
+
+\textbf{Plain network}: The convolutional layers mostly have $3 \times 3$ filters and follow two simple design rules:
+(i) for the same output
+feature map size, the layers have the same number of filters; and
+(ii) if the feature map size is halved, the number of filters is doubled so as to preserve the time complexity per layer
+\cite{resnet}.
+Whenever the data nis downsampled it is done by a convolutional layer with a stride of 2.
+In the end the network has a fully connected layer with 1000 outputs.
+
+\textbf{Residual network}: 
+The residual network is based on the plain network, but uses shortcut connctions
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.69]{assets/residual-net.png}
+    \caption{The first part of each layer tells which type of layer it is, the second tells how many channels the layer uses, and the third tells if there is downsampling ($/2$). \textbf{middle}: 34-layer plain network. \textbf{right}: 34-layer residual network - based on plain, but with shortcut connections. Source: \cite{resnet}}
+    \label{fig:resnet}
+\end{figure}
 
 
