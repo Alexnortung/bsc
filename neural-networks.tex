@@ -290,6 +290,8 @@ The dimensions of $\bm{x}$ and $\mathcal{F}(\bm{x})$ has to be equal, if they ar
 
 \subsubsection{Netwok architecture}%
 
+\autoref{fig:resnet} shows the two network archtectures: plain and residual.
+
 \textbf{Plain network}: The convolutional layers mostly have $3 \times 3$ filters and follow two simple design rules:
 (i) for the same output
 feature map size, the layers have the same number of filters; and
@@ -299,12 +301,12 @@ Whenever the data nis downsampled it is done by a convolutional layer with a str
 In the end the network has a fully connected layer with 1000 outputs.
 
 \textbf{Residual network}: 
-The residual network is based on the plain network, but uses shortcut connctions
+The residual network is based on the plain network, but uses shortcut connctions with identity mapping. However when the dimensions do not match for a shortcut connection (dotted line), the data is downsampled by using a $1 \times 1$ convolution with a stride of 2.
 
 \begin{figure}
     \centering
     \includegraphics[scale=0.69]{assets/residual-net.png}
-    \caption{The first part of each layer tells which type of layer it is, the second tells how many channels the layer uses, and the third tells if there is downsampling ($/2$). \textbf{middle}: 34-layer plain network. \textbf{right}: 34-layer residual network - based on plain, but with shortcut connections. Source: \cite{resnet}}
+    \caption{The first part of each layer tells which type of layer it is, the second tells how many channels the layer uses, and the third tells if there is downsampling ($/2$). \textbf{middle}: 34-layer plain network. \textbf{right}: 34-layer residual network - based on plain, but with shortcut connections. The dotted lines represent a downsampling in the shortcut connection. Source: \cite{resnet}}
     \label{fig:resnet}
 \end{figure}
 
