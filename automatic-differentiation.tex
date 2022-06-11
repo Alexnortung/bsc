@@ -1,37 +1,40 @@
 \section{Automatic differentiation}%
 \label{sec:autodiff}
 
-In the previous \autoref{sub:network_training} it was discussed how a neural network can be trained to classify sets of data. To train the network one would need to find the derivative of the loss function. A simple way this can be done is by manually finding the derivative of each function and use those and applying the chain rule.
+In \autoref{sub:network_training} it was discussed how a neural network can be trained to classify sets of data. To train the network one would need to find the derivative of the loss function. A simple way this can be done is by manually finding the derivative of each function and use those
+% TODO: vær sikker på at dette er korrekt
+and applying the chain rule.
 
 However when looking at this from a software engineering perspective it might be much more work to find the derivative of each function and if anything is changed in any of the functions, the derivative would also have to be changed, thus requiring more maintainance.
 
-A solution to this is automatic differentiation, which is a method used by the compiler to make transformations to functions into their derivative.
+A solution to this is automatic differentiation, which is a method used by the Futhark compiler to make transformations to functions into their derivative.
 
 \subsection{Methods of differentiation}
 
-Before going into detail on how automatic differentiation it is good to know what other methods could be used.
+Before going into detail on how automatic differentiation it is good to know what other methods could be used and what the advantages and disadvantages are.
 
 First there is manual differentiation, where the derivative is found by hand.
 
 Second there is numerical differentiation, where the derived value is approximated by using the original function. This is done by taking the point $\bm{x}$ and the point $\bm{x}+h$ where $h>0$ is a very small real number. To approximate a gradient $\nabla f = \left(\frac{\partial f}{\partial x_1}, ..., \frac{\partial f}{\partial x_n} \right)$ the following formula can be used
-
 $$\frac{\partial f(\bm{x})}{\partial x_i} \approx \frac{f(\bm{x} + h\bm{e}_i) - f(\bm{x})}{h}$$
-
 Where $\bm{e}_i$ is the $i$-th unit vector. This can be very easy to implement, however to find the derivative for $n$ dimensions the performance would be $O(n)$ \cite{autodiff}.
 
 Third there is symbolic differentiation, this is what many math programs such as maple use. It is an automatic manipulation of an expression that obtains a derivative expression. The derivative expression is obtained by systematically applying rules.
 A problem with symbolic differentiation is that the symbolic structure is not necessarily efficient in runtime computation since symbolic derivatives can get exponentially larger
 \cite{autodiff}.
 
-\subsection{Automatic differentiation}
+\subsection{Automatic differentiation}%
+\label{sub:autodiff}
 
-Automatic differentiation can be used when we do not need the derivative's symbolic form. Since we do not need the derivative's symbolic form it is possible to significantly simplify the computations and by storing only the values of intermediate sub-expressions in memory \cite{autodiff}. One of the advantages of using automatic differentiation over the other ones is that we can use branching and loops.
-
-In this section the main modes of automatic differentiation will be discussed.
+Automatic differentiation can be used when we do not need the derivative's symbolic form.
+A function's symbolic form can for example be $f(x) = sin(x) * 2$.
+In automatic differentiation it is not needed to be this verbose, this is because the code will eventually just return a numeric value anyway.
+Since we do not need the derivative's symbolic form it is possible to significantly simplify the computations and by storing only the values of intermediate sub-expressions in memory \cite{autodiff}. Another advantage of using automatic differentiation over the other ones is that we can use branching and loops.
 
 \subsubsection{Forward mode}
 
-Automatic differentiation in forward mode is conceptually the most simple type \cite{autodiff}. In forward mode the derivative is found whenever a variable is defined, consider a function $y = f(g(h(x)))$, and as variables
+Automatic differentiation in forward mode is conceptually the most simple type \cite{autodiff}. In forward mode the derivative is found whenever a variable is defined, consider a function
+$y = f(g(h(x)))$, and as variables
 \begin{lstlisting}
 w0 = x
 w1 = h(w0)
@@ -39,10 +42,47 @@ w2 = g(w1)
 w3 = h(w2)
 y = w3
 \end{lstlisting}
-
 now the derivative will can be found by computing the derivative of each variable in the order it was declared.
+$$y' = \frac{\partial y}{\partial x} = \frac{\partial y}{\partial w_2} \frac{\partial w_2}{\partial x} = \frac{\partial y}{\partial w_2} \left(\frac{\partial w_2}{\partial w_1} \frac{\partial w_1}{\partial x}\right) = \frac{\partial y}{\partial w_2} \left(\frac{\partial w_2}{\partial w_1} \left(\frac{\partial w_1}{\partial w_0} \frac{\partial w_0}{\partial x}\right) \right)$$
+Since $w_0 = x$ and $\frac{\partial x}{\partial x}$, it does not make sense to go any further and the expression can be reduced to
+$$y' = \frac{\partial y}{\partial w_2} \left(\frac{\partial w_2}{\partial w_1} \left(\frac{\partial w_1}{\partial x}\right) \right)$$.
 
-$$y' = \frac{\partial y}{\partial x} = \frac{\partial y}{\partial w_2} \frac{\partial w_2}{\partial x} = \frac{\partial y}{\partial w_2} \left(\frac{\partial w_2}{\partial w_1} \frac{\partial w_1}{\partial x}\right) = \frac{\partial y}{\partial w_2} \left(\frac{\partial w_2}{\partial w_1} \left(\frac{\partial w_1}{\partial x} \frac{\partial x}{\partial x}\right) \right)$$
+As an example consider this function $r = F(x, y) = \sin(x) + x\cdot y$, Where the derivative is found with respect to $x$.
+\begin{lstlisting}[label={lst:autodiff_fwd_trace}, caption={Forward trace of a simple function $f(x, y) = \sin(x) + x\cdot y$}]
+w0 = x
+w1 = sin(w0)
+w2 = w0 * y
+w3 = w1 + w2
+r = w3
+\end{lstlisting}
+$$r' = \frac{\partial r}{\partial w_2} \left(\frac{\partial w_2}{\partial w_1} \left(\frac{\partial w_1}{\partial x}\right) \right)$$.
+Now each intermediate derivative can be solved.
+\begin{lstlisting}[label={lst:autodiff_fwd_deriv}, caption={Forward derivative trace of a simple function $f(x, y) = \sin(x) + x\cdot y$}]
+w0' = 1
+w1' = cos(w0) * w0'
+w2' = y
+w3' = w1' + w2'
+r' = w3'
+\end{lstlisting}
+To verify $r'$ can be show to reduce to $r' = \cos(x) + y$.
+
+Automatic differentiation in forward mode differentiates each expression as it reaches them in \autoref{lst:autodiff_fwd_trace} which can be seen in \autoref{lst:autodiff_fwd_deriv}. This is done for each input parameter, so in the previous example $\frac{\partial r}{\partial x}$ and $\frac{\partial r}{\partial y}$ is found.
+
+For $n$ input parameters and a function $$F(x_1, ..., x_n) = [ y_1, ..., y_m ]$$ that returns $m$ outputs, the Jacobian can be calculated. For each input parameter and each output value the derivative needs to be found in order to find the Jacobian.
+$$\bm{J}_F = \left[
+  \begin{array}{ccc}
+    \frac{\partial y_1}{\partial x_1} & \cdots & \frac{\partial y_1}{\partial x_n}\\
+    \vdots & \ddots & \vdots\\
+    \frac{\partial y_m}{\partial x_1} & \cdots & \frac{\partial y_m}{\partial x_n}\\
+  \end{array}
+\right]$$
+This Jacobian can be computed in $n$ iterations, one iteration for each forward trace or input parameter.
+The derivative values at point $\bm{r}$ by simply multiplying $\bm{r}$ to the Jacobian $\bm{J}_F$.
+
+\subsubsection{Reverse mode}%
+\label{ssub:reverse_mode}
+
+
 
 
 
