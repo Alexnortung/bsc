@@ -49,18 +49,20 @@ $$y' = \frac{\partial y}{\partial w_2} \left(\frac{\partial w_2}{\partial w_1} \
 
 As an example consider this function $r = F(x, y) = \sin(x) + x\cdot y$, Where the derivative is found with respect to $x$.
 \begin{lstlisting}[label={lst:autodiff_fwd_trace}, caption={Forward trace of a simple function $f(x, y) = \sin(x) + x\cdot y$}]
+w-1 = y
 w0 = x
 w1 = sin(w0)
-w2 = w0 * y
+w2 = w0 * w-1
 w3 = w1 + w2
 r = w3
 \end{lstlisting}
 $$r' = \frac{\partial r}{\partial w_2} \left(\frac{\partial w_2}{\partial w_1} \left(\frac{\partial w_1}{\partial x}\right) \right)$$.
 Now each intermediate derivative can be solved.
 \begin{lstlisting}[label={lst:autodiff_fwd_deriv}, caption={Forward derivative trace of a simple function $f(x, y) = \sin(x) + x\cdot y$}]
+w-1' = 1
 w0' = 1
 w1' = cos(w0) * w0'
-w2' = y
+w2' = w-1'
 w3' = w1' + w2'
 r' = w3'
 \end{lstlisting}
@@ -82,8 +84,37 @@ The derivative values at point $\bm{r}$ by simply multiplying $\bm{r}$ to the Ja
 \subsubsection{Reverse mode}%
 \label{ssub:reverse_mode}
 
-Automatic differentiation in reverse mode is where the contribution of each intermediate value to the output is calculated, in order to find the derivative.
+As described before, calculating the derivative using forward mode can be very computationally costly when having a function with many inputs.
+Especially for neural networks, a large number of inputs might be given, so this method might not be feasible to use.
 
+Automatic differentiation in reverse mode, finds the derivatives in reverse compared to forward mode, after doing the initial forward trace.
+This is done by complementing each intermediate variable $v_i$ with an adjoint \cite{autodiff}
+\begin{equation}\label{eqn:autodiff_adjoint}
+\bar{v_i} = \frac{\partial y_j}{\partial w_i}
+\end{equation}
+During the forward trace the values of $w_i$ are recorded, which can then be used during the reverse trace.
+The adjoint represents how sensitive output $y_j$ is to the changes in the intermediate variable $w_i$.
+What is most interesting is how much each input adjoint change the output by, since this can be used to calculate the derivative at that point.
 
-
-
+During the reverse trace, the derivatives are calculated by accumulating how much each of the adjoints change the output.
+This is done in reverse, starting from the outputs and continuing to the inputs.
+Consider \autoref{lst:autodiff_fwd_trace}, the reverse trace can be computed using \autoref{eqn:autodiff_adjoint}, this can be seen in \autoref{lst:autodiff_rev_trace}.
+\begin{lstlisting}[label={lst:autodiff_rev_trace}, caption={Reverse trace of \autoref{lst:autodiff_fwd_trace}, with $x=5$ and $y=2$. The reverse trace is calculated from bottom to top. \texttt{\_} before a variable means that it is it's adjoint.}]
+_y   = _w-1                                       = 5
+_x   = _w0                                        = 1.58
+_w0  = _w0 + _w1 d w1 / d w0  = _w0 + 1 * cos(w0) = 2 - 0.42 = 1.58
+_w-1 = _w2 d w2 / d w-1       = _w2 * (w0)        = 1 * 5 = 5
+_w0  = _w2 d w2 / d w0        = _w2 * (w-1)       = 1 * 2 = 2
+_w2  = _w3 d w3 / d w2        = _w3 * 1           = 1
+_w1  = _w3 d w3 / d w1        = _w3 * 1           = 1
+_w3  = d r / d r              = 1
+\end{lstlisting}
+The gradient is now obtained for $F$
+$$\nabla F = \left( \begin{array}{c}
+    \bar{x}\\
+    \bar{y}
+\end{array} \right) = \left( \begin{array}{c}
+    1.58\\
+    5
+\end{array} \right)$$
+This method has the complexity of $O(m)$, where $m$ is the number of output variables.

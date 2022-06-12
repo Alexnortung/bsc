@@ -126,8 +126,26 @@ The user can also define their own loss functions if the library does not provid
 
 \subsection{Optimizers}
 
-Optimizers are the modules that perform the back propagation of the network.
+Optimizers are the modules that perform the backpropagation of the network.
 This has been separated as its own module type to allow for new or future implementations of optimizers.
+
+The idea with optimizers is to hold the loss function together with a function that can apply the gradient to the weights of each layer.
+Then the optimizer can be given to the \texttt{nn.train} function which performs the actual training. When each layer needs to be updated they will be given an \texttt{apply\_gradient} function, which each layer can call and get an updated weight.
+In the current implementation, instead of having a single \texttt{apply\_optmize} function it has a record of 4 different functions, which works on arrays of different dimensions. However this should probably only have been a single function that would take a one-dimensional array, since that would make it easier to maintain and create new optimizers and it is unnecessary complex.
+
+One of the obstacles that was encountered when implementing the \\% Force newline
+\texttt{apply\_gradient} function is that the compiler tried to generalize the size types. Consider the following type
+\begin{lstlisting}
+type^ optimizer_apply_optimize_func 'wb = wb -> wb -> wb
+\end{lstlisting}
+This function is then passed to the entire network's \texttt{apply\_optimize} function, and for each layer the same function is used.
+The problem arises when the Futhark compiler tries to figure out what the type of the function is.
+For example, for one layer \texttt{'wb} might have the type \texttt{[5][5]f64} and for another layer \texttt{[8][5]f64}.
+In this example the types differ and the Futhark compiler cannot generalize the type of the function.
+The solution was to make the type depend on an input parameter, which can be seen in the following listing
+\begin{lstlisting}
+type apply_1d 't = (a: i64) -> optimizer_apply_optimize_func ([a]t)
+\end{lstlisting}
 
 There is implemented one optimizer, which performs gradient descent this module is called \texttt{sgd} and can be accessed in \texttt{nn.optim.sgd}.
 

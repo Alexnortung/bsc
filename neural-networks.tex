@@ -246,8 +246,35 @@ This problem can be dealt with by using normalization layers which will be discu
 
 % There is no well-accepted metric for determining the presence of pathological exploding gradients \cite{exploding_gradients}.
 
-\subsection{Normalizations layers}%
+\subsection{Batch normalizations layer}%
 \label{sub:norm_layers}
+
+% Motivation
+Batch Normalization allows us to use much higher learning rates and
+be less careful about initialization. It also acts as a regularizer,
+in some cases eliminating the need for Dropout \cite{batch_norm}.
+Batch normalization can make training a network much faster, since the learning rate can be lower.
+It also deals with the problem of exploding/vanishing gradients, which can help the network converge toward more optimal weights during training.
+
+% How it works
+% The idea of the Batch normalization layer is to normalize the the input of the layer, such that they are on the same scale.
+% For example an input value might represent age which could be between 0 and 100, and another could be miles driven in a car which could be between 1000 and 100000 miles.
+% These values 
+One of the problems of training deep neural networks is that during training all layers' weights are updated simultaneously.
+This is a problem since the gradient tells how much the weights should change while assuming that other layers do not change.
+This causes a problem where each time the layers are updated it will have a new target, which might make the weights never settle during training.
+
+The idea of a Batch normalization layer is to standardize input values to a layer.
+The values are scaled such that it has a mean of zero and a standard deviation of one.
+The standardization can be done by first calculating the mean and standard deviation of the input values, then using this to calculate the standardization.
+$$\hat{x} = \frac{x - E[x]}{\sqrt{Var[x]}}$$
+Where $\hat{x}$ is the standardized values for one dimension.
+However the layer also have two new learnable parameters $\gamma$ and $\beta$.
+These parameters are used to give the layer a new mean and standard deviation.
+Where $\gamma$ scales the normalized values to give it a new standard deviation and $\beta$ shifts the values to a new mean.
+The formula for the layer can then be represented as
+$$y = \frac{x - E[x]}{\sqrt{Var[x]}} \cdot \gamma + \beta$$
+% However in a Batch normalization layer the standardization can be done with the help of two new learnable parameter $\beta$ and $\gamma$, such that these values would not have to be calculated, but instead trained.
 
 
 \subsection{Residual network (ResNet)}
@@ -302,6 +329,7 @@ In the end the network has a fully connected layer with 1000 outputs.
 
 \textbf{Residual network}: 
 The residual network is based on the plain network, but uses shortcut connctions with identity mapping. However when the dimensions do not match for a shortcut connection (dotted line), the data is downsampled by using a $1 \times 1$ convolution with a stride of 2.
+In the original implementation a batch normalization layer is used right after each convolution, which might help to deal with the exploding/vanishing gradients problem.
 
 \begin{figure}
     \centering
@@ -309,5 +337,4 @@ The residual network is based on the plain network, but uses shortcut connctions
     \caption{The first part of each layer tells which type of layer it is, the second tells how many channels the layer uses, and the third tells if there is downsampling ($/2$). \textbf{middle}: 34-layer plain network. \textbf{right}: 34-layer residual network - based on plain, but with shortcut connections. The dotted lines represent a downsampling in the shortcut connection. Source: \cite{resnet}}
     \label{fig:resnet}
 \end{figure}
-
 
