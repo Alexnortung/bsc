@@ -1,4 +1,65 @@
 \section{Background}
 \subsection{Futhark}
+Futhark is a high-level functional programming language that is designed to compile effecient parallel programs.
+Futhark can compile to GPU code with Cuda and OpenCL.
+It abstracts away low-level implementation details, and tries to make the high-level code as effecient as possible.
+
+Futhark supports many Second-order array combinator (SoAC) functions such as \texttt{map} and \texttt{reduce}.
+The types of these functions can be seen in the following listing.
+\begin{lstlisting}
+type^ map 'a [n] 'x = (f: a -> x) -> (as: [n]a) -> *[n]x
+type^ reduce [n] 'a = (op: a -> a -> a) -> (ne: a) -> (as: [n]a) -> a
+\end{lstlisting}
+As it can be seen in the type of \texttt{reduce} futhark uses parametric polymorphism, such that the function will work with different types of \texttt{a}.
+Polymorphic types are declared before the equal sign and starts with an apostrophe.
+It should also be noted that Futhark uses size, these types can also be polymorphic and in the example above is denoted as \texttt{[n]}.
+
+Futhark also has a module system which is important for a software engineering perspective, since it makes it much easier to hide implementation details.
+The module system also supports having parametric types, for example, for one dataset you might want a module to use \texttt{f32} as its values and for another to use \texttt{f64}.
+The module could also just use parametric types for all functions, however this introduces problems if you want to \texttt{sum} an array.
+This can be solved by having a parametric type, there are different modules for numbers which can be used. Here are a few \texttt{numeric}, \texttt{real} and \texttt{foat}. The \texttt{numeric} is the most generic so it does not have functions that operate on \texttt{real} numbers, such as \texttt{sin} or \texttt{floor}.
+A module might use a parametric type in the following way
+\begin{lstlisting}
+module a (R: real) = {
+  -- ... functions go here
+}
+\end{lstlisting}
+
+Futhark must use regular arrays, this means that an array of arrays cannot have one value in the first array and two values in the second, thus
+$[[1],[2,3]]$
+is not allowed.
+Another limitation of Futhark is that functions cannot be stored in arrays.
 
 \subsection{Gradient descent}
+Gradient descent is a concept that will be important when we see how to train a neural network in \autoref{sub:network_training}.
+
+To understand gradient descent, we should first be familiar with a gradient.
+A gradient is a vector of all the partial derivatives of a function.
+As an example, consider the following function
+$$f(x,y) = x^2 + xy$$
+To find the derivative, we need to find the partial derivative for each parameter, which yields the following functions
+\begin{align*}
+  f_x(x,y) &= \frac{\partial f}{\partial x} = 2x + y\\
+  f_y(x,y) &= \frac{\partial f}{\partial y} = x
+\end{align*}
+We denote the gradiant with a $\nabla$ so the gradient of $f$ is denoted $\nabla f$. The gradient can then be represented as
+$$\nabla f = \left( \begin{array}{c}
+  f_x\\
+  f_y
+\end{array} \right) = \left( \begin{array}{c}
+  2x + y\\
+  x
+\end{array} \right)$$
+This can be generalized to
+$$\nabla f(x_1, ..., x_n) = \left( \begin{array}{c}
+    \frac{\partial f}{\partial x_1}\\
+    \vdots\\
+    \frac{\partial f}{\partial x_n}\\
+\end{array} \right)$$
+
+Gradient descent can then be thought of as trying to minimize the function $f$.
+Gradient descent is an iterative process, where the goal is to get closer to the minima or local minima by each iteration.
+A point $\bm{x}_0$, can move closer to a minima by the following process.
+$$\bm{x}_{i+1} = \alpha \bm{x}_i - \nabla f(\bm{x}_i)$$
+Where $\alpha$ is a learning rate. The learning rate can be important since gradient descent might never get close to the minima if the gradient is always too big and the point will always miss.
+An important note is that there might not be a minima, so for such a function we could keep iterating forever and always find a smaller value.
