@@ -1,15 +1,19 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+% \usepackage[english]{babel}
+\usepackage{wallpaper}
+% \usepackage{geometry}
+\usepackage{palatino}
+\usepackage{changepage}
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{amsmath}
 \usepackage{bm}
-\usepackage[makeroom]{cancel}
 \usepackage{float}
 \usepackage{hyperref}
 \usepackage{caption}
-% \usepackage{subfigure}
 \usepackage{subfig}
 \usepackage[
     % style=alphabetic,
@@ -19,6 +23,8 @@
 ]{biblatex} %Imports biblatex package
 
 \usepackage{microtype}
+
+% \usepackage[babel, farve, da]{ku-forside} % KU-forside
 
 \addbibresource{bibliography.bib}
 
@@ -57,13 +63,43 @@
 \floatplacement{table}{H}
 \floatplacement{figure}{H}
 
-\title{Implementation of a library for convolutional neural networks in futhark}
-\author{Alexander Nortung}
-\date{2022-06-13}
+% \titel{} %Skriv jeres projektnummer (1-8)
+% \undertitel{Implementation of a library for convolutional neural networks in futhark} %Skriv titlen på jeres projekt
+% \opgave{BSc Thesis in Computer Science} 
+% \forfatter{Alexander Nortung <tps564>}%Skriv jeres gruppenummer
+% \dato{Department of Computer Science, \today} %"today" skriver automatisk dagens dato. 
+% \vejleder{Suporvisor: Cosmin Eugen Oancea} %Skriv jeres vejleders navn
+
+
+% \title{Implementation of a library for convolutional neural networks in futhark}
+% \author{Alexander Nortung}
+% \date{2022-06-13}
 
 \begin{document}
-
-\maketitle
+%%  Begin title page
+%%  ==================================================================
+    \thispagestyle{empty}
+    \ULCornerWallPaper{1}{ku-coverpage/nat-farve.pdf}
+    \ULCornerWallPaper{1}{ku-coverpage/diku-en.pdf}
+    \begin{adjustwidth}{-3cm}{-1.5cm}
+    \vspace*{-1cm}
+    \textbf{\Huge BSc Thesis in Computer Science} \\
+    \vspace*{2.5cm} \\
+    \textbf{\large Implementation of a library for convolutional neural networks in futhark} \\
+    \begin{tabbing}
+    % adjust the hspace below for the longest author name
+    Alexander Nortung \hspace{1cm} \= \texttt{<tps564@alumni.ku.dk>} \\
+    \\
+    \\[12cm]
+    \textbf{\Large Supervisor} \\
+    Cosmin Eugen Oancea \\
+    \end{tabbing}
+    \end{adjustwidth}
+    \newpage
+    \ClearWallPaper
+% %%  ==================================================================
+% %%  End title page
+% \restoregeometry
 
 \include{abstract.tex}
 

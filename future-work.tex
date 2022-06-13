@@ -1,4 +1,18 @@
 \section{Future work and conclusion}
 \subsection{Future work}
+The implementation can definitely be improved, the obvious improvements are the optimizations discussed in \autoref{ssub:optimize_conv} to optimize the convolutional layer. And in \autoref{ssub:impl_fully_connected} to make the fully connected layer use matrix multiplication.
+
+If Futhark will support using size types from records/tuples, then the interface could be implemented to be much nicer, without letting the user manually type the output sizes some layers.
+Another solution to this problem might be if Futhark could use arithmetic operations in size types.
+
+ResNet should also be implemented as a model along with the batch normalization layer.
 
 \subsection{Conclusion}
+
+This thesis introduced neural networks and some popular layers to use with them and how they operate.
+It has lightly introduced the subject of automatic differentiation and it's modes.
+It has also shown a way to optimize matrix multiplication although it has not been implemented in this library, due to the high-level nature of Futhark.
+The design and some implementation details of the library has been discussed.
+The library also exploits Futharks new support for automatic differentiation, which significantly simplifies the design.
+The library also shows that a lot of implementation details can be abstracted away by using Futhark's module system.
+

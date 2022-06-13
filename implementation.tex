@@ -164,8 +164,8 @@ In the implementation a few shorthand functions have been added to easily add ba
 \subsubsection{Fully connected}%
 \label{ssub:impl_fully_connected}
 
-The fully connected layer is initialized with the function \texttt{nn.layers.linear.init} which is a function that takes \texttt{m} and \texttt{n} as its input and output size, an activation function and a seed for initializing weights.
-The bias and weights can be set by the user by using the functions \texttt{nn.layers.linear.set\_bias} and \texttt{nn.layers.linear.set\_weights}, this might be useful if the user already trained a network and wants to set teh weights and bias to use the trained network without training it again.
+The fully connected layer is initialized with the function\\ \texttt{nn.layers.linear.init} which is a function that takes \texttt{m} and \texttt{n} as its input and output size, an activation function and a seed for initializing weights.
+The bias and weights can be set by the user by using the functions\\ \texttt{nn.layers.linear.set\_bias} and \texttt{nn.layers.linear.set\_weights}, this might be useful if the user already trained a network and wants to set teh weights and bias to use the trained network without training it again.
 
 A shorthand function for adding a linear layer ot a network is by using the functions \texttt{nn.linear}, this function takes a parameter \texttt{n} which is the output size, an activation function and the network the linear layer should be added to. This function is handy since it is very easy to compose multiple layers, with very little code. Here is an example
 
@@ -264,7 +264,8 @@ For \texttt{init\_2d} it is the same as \texttt{init\_1d}, but instead of \textt
 
 This layer type also have shorthand functions, for example \texttt{nn.conv\_2d} which takes the same parameters as \texttt{init\_2d}, but not \texttt{in\_channels}, or \texttt{seed} since they are implicit from the network.
 
-\subsubsection*{Optimizing convolutional layers}
+\subsubsection*{Optimizing convolutional layers}%
+\label{ssub:optimize_conv}
 
 It is possible to optimize the convolutional operation, this can be done in different ways where each has its own strength and weaknesses.
 This implementation does not include these optimizations, but could be implemented in future work.
