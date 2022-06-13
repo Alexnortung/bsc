@@ -1,1 +1,30 @@
 \section{Introduction}
+% Why should I read this?
+% An artificial neural network is a machine learning model, that can solve many complex tasks.
+As the clock speeds of CPUs increase, they will be able to compute faster, but they will also consume much more power.
+One way to get around this problem is by using more cores instead of increasing clock speed.
+A device that has taken advantage of this is a GPU, which can have thousands of cores.
+GPUs can be very fast by computing a lot of stuff in parallel.
+It might be harder for software engineers to write this massively parallel code.
+
+Futhark is a functional programming language that can compile code to massivly parallel hardware with backends such as Cuda and opencl.
+Futhark makes it easy to write code massively parallel hardware as it handles a lot of optimization.
+It also hides a lot of aspects that can be hard to work with.
+
+This thesis will focus on neural networks with emphasis on convolutional neural networks.
+In \autoref{sec:Neural networks} neural networks will be introduced and how different layers work and what their purpose in a neural network are.
+We will see how neural networks can be trained to recognize patterns in data and solve complex tasks.
+It will also be described how a successful neural network model (ResNet) works.
+
+In this project a library for neural networks have been developed using Futhark, the design and implementation details will be described in \autoref{sec:impl}.
+The library has been developed from scratch, but draws inspiration from previous work by Duc Minh Tran \cite{duc}.
+This project however aims to simplify the design of the library by also utilizing that Futhark now supports automatic differentiation.
+In \autoref{sec:autodiff} a short high-level description of how automatic differentiation works will be described.
+% \subsection{Objectives}
+% Learning goals
+% Machine learning and NN
+% GPU
+% matrix multiplication Optimizations
+% Futhark
+% Library
+% Previous work
