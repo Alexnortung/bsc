@@ -5,6 +5,8 @@ The implementation was created using Futhark, Futhark is a functional language w
 Futhark comes with some limitations, one being that arrays cannot be irregular or contain functions.
 If this limitation was not there, it would be easy to make an array of the functions for each layer and then use a \texttt{fold}-like operation for the forward propagation.
 
+The repository can be found at \href{https://github.com/Alexnortung/futhark-nn}{github.com/Alexnortung/futhark-nn}.
+
 \subsection{Design}
 
 The design idea was to implement each layer as a module that could calculate the forward propagation and update the weights given a gradient.
