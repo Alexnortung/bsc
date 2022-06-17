@@ -1,0 +1,313 @@
+\documentclass{beamer}
+% \usetheme{Copenhagen}
+% \usepackage{minted}
+\usepackage{listings}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{sagetex}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+
+% \setcounter{tocdepth}{1}
+
+\AtBeginSection{%
+    \begin{frame}
+         \frametitle{Outline}
+        \tableofcontents[currentsection, hideallsubsections]
+    \end{frame}
+    \begin{frame}
+        \tableofcontents[sections=\value{section}]
+    \end{frame}
+}
+
+\title{Implementation of a library for convolutional neural networks in futhark}
+% \subtitle{Using Beamer}
+\author{Alexander Nortung}
+\institute{University of Copenhagen}
+\date{2022-06-21}
+
+\begin{document}
+
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% \begin{frame}
+%     \frametitle{Outline}
+%     \tableofcontents[hideallsubsections]
+% \end{frame}
+
+\section{Background}
+
+\subsection{Futhark}
+
+\begin{frame}
+    \frametitle{Futhark}
+    \begin{itemize}
+        \item Functional programming language
+        \item Effecient
+        \item GPU code
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{A simple example}
+    % \begin{minted}{futhark}
+    %     def main (x: i64) : i64 =
+    %         let a
+    % \end{minted}
+    Consider this program
+    \begin{lstlisting}
+def main (x: i64) : i64 =
+    let a = 12
+    in a + x
+    \end{lstlisting}
+    \pause
+    \begin{description}
+        \item[def] Defines a function
+        \item[(x: i64)] A parameter named \texttt{x} with type of \texttt{i64}
+        \item[: i64] returns a type is i64
+        \pause
+        \item[let] Creates a new variable
+        \item[in] What should be reutrned (only needed with let)
+    \end{description}
+    \pause
+    The main function is executed by default
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Modules}
+    Being able to isolate code and functions is essential for building libraries and larger applications.
+    \begin{lstlisting}
+-- a.fut
+module a = {
+    def sub 't (a: t) (b: t) : t =
+        a - b
+}
+    \end{lstlisting}
+    \pause
+    We can use the module in a program
+    \begin{lstlisting}
+-- program.fut
+import "a"
+def main =
+    a.sub 6 7
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Polymorphism}
+    We saw in the previous slide that we could use a type \texttt{'t} which is a polymortphic type
+    \begin{lstlisting}
+def sub 't (a: t) (b: t) : t =
+    a - b
+    \end{lstlisting}
+    \pause
+    examples:
+    \begin{lstlisting}
+sub 10.0f32 0.5f32
+sub 10u8 1u8
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Size types}
+    An important part of Futhark is its use of size types
+    \begin{lstlisting}
+def sub_array 't (a: [10]t) (b: [10]t) : [10]t =
+    map2 (-) a b
+    \end{lstlisting}
+    \pause
+    Named or dynamic size types gives more flexibility
+    \begin{lstlisting}
+def sub_array 't [sz] (a: [sz]t) (b: [sz]t) : [sz]t =
+    map2 (-) a b
+    \end{lstlisting}
+    \pause
+    This would work too, since we do not use the size anywhere.
+    \begin{lstlisting}
+def sub_array 't (a: []t) (b: []t) : []t =
+    map2 (-) a b
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Tuples and records}
+    Tuples can hold different types of values, like other languages
+
+    An example tuple:
+    \begin{lstlisting}
+let tup = (10i64, 400f64)
+    \end{lstlisting}
+    \pause
+    An example record:
+    \begin{lstlisting}
+let record = { a: 100, b: 32 }
+    \end{lstlisting}
+    \pause
+    Tuples' and records' values can be accessed with dot notation
+    \begin{lstlisting}
+tup.0
+record.a
+    \end{lstlisting}
+    \pause
+    Or their values can be accessed by destructuring
+    \begin{lstlisting}
+let (v1, v2) = tup
+let { a, b = myB }
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Limitations}
+    \begin{itemize}
+        \item Regular arrays
+        \item Arrays cannot contain functions
+        \item Size types cannot use arithemetic e.g. \texttt{[a+b-1]}
+        \item Parameters cannot come from tuples or records
+    \end{itemize}
+\end{frame}
+
+\subsection{Gradient descent}
+
+\begin{frame}
+    \frametitle{Gradient descent}
+    Gradient descent is an iterative process used to find a minima of a function.
+    \pause
+    By using the derivative of the function we can move a point $\bm{x}$ toward the minima for each iteration.
+    $$\bm{x}_{i+1} = \bm{x}_i - \alpha \nabla f(\bm{x})$$
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Gradient descent simple example}
+    \begin{sageblock}
+f(x) = 3 * (x**3) - 25 * (x**2) - 1
+fp(x) = derivative(f(x), x)
+x1 = 9
+a = 0.005
+p1 = point((x1, f(x1)), color="red", size=30)
+    \end{sageblock}
+    \begin{figure}
+        \centering
+        \sageplot[width=0.5\textwidth]{p1 + plot(f, xmin=-2, xmax=9.50)}
+    \end{figure}
+    \begin{sageblock}
+x2 = x1 - a * fp(x1)
+    \end{sageblock}
+
+    % $$x_2 = \sage{x2}$$
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Gradient descent simple example}
+    \begin{sageblock}
+p2 = point((x2, f(x2)), color="red", size=30)
+    \end{sageblock}
+    \begin{figure}
+        \centering
+        \sageplot[width=0.5\textwidth]{p2 + plot(f, xmin=-2, xmax=9.50)}
+    \end{figure}
+    \begin{sageblock}
+x3 = x2 - a * fp(x2)
+    \end{sageblock}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Gradient descent simple example}
+    \begin{sageblock}
+p3 = point((x3, f(x3)), color="red", size=30)
+    \end{sageblock}
+    \begin{figure}
+        \centering
+        \sageplot[width=0.5\textwidth]{p3 + plot(f, xmin=-2, xmax=9.50)}
+    \end{figure}
+    $$x_3 = \sage{x3}$$
+\end{frame}
+
+\begin{frame}
+    \frametitle{Gradient descent}
+    For a function with only one parameter the gradient is simply the derivative of the function.
+
+    With multiple parameters it is a vector of each partial derivative
+    $$\nabla f(x_1, ..., x_n) = \left( \begin{array}{c}
+    \frac{\partial f}{\partial x_1}\\
+    \vdots\\
+    \frac{\partial f}{\partial x_n}\\
+\end{array} \right)$$
+\end{frame}
+
+
+\section{Neural networks}
+
+\begin{frame}
+    \frametitle{Neural networks}
+\end{frame}
+
+\subsection{Fully connected layer}
+
+\subsection{Activation functions}
+
+\subsection{Convolutional layer}
+
+\subsection{Maxpooling layer}
+
+\subsection{Loss functions}
+
+\subsection{Network training}
+
+\subsection{Exploding/vanishing gradients}
+
+\subsection{Barch normalization layer}
+
+\subsection{ResNet}
+
+\begin{frame}
+    \frametitle{ResNet}
+\end{frame}
+
+\section{Automatic differentiation}
+
+\subsection{Methods of differentitation}
+
+\subsection{Automatic differentitaion}
+
+\subsection{Forward mode}
+
+\subsection{Reverse mode}
+
+\section{Optimizing matrix multiplication}
+
+\section{Design and implementation}
+
+\section{Future work and conclusion}
+
+\subsection{Future work}
+
+\subsection{Conclusion}
+
+\end{document}

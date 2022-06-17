@@ -1,4 +1,7 @@
 *.drawio.bkp
+*__pycache__*
+*.sagetex.sage.py
+**/sagetex.py
 
 
 ## Core latex/pdflatex auxiliary files:
