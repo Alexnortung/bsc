@@ -5,6 +5,9 @@
 \usepackage{bm}
 \usepackage{amsmath}
 \usepackage{sagetex}
+\usepackage{float}
+\usepackage{subfig}
+
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -43,6 +46,14 @@
     \begin{frame}
         \tableofcontents[sections=\value{section}]
     \end{frame}
+}
+
+\newcommand\Wider[2][3em]{%
+\makebox[\linewidth][c]{%
+    \begin{minipage}{\dimexpr\textwidth+#1\relax}
+        \raggedright#2
+    \end{minipage}%
+}%
 }
 
 \title{Implementation of a library for convolutional neural networks in futhark}
@@ -266,19 +277,322 @@ p3 = point((x3, f(x3)), color="red", size=30)
 
 \begin{frame}
     \frametitle{Neural networks}
+
+    \begin{itemize}
+        \item Machine learning model
+        \item Layers
+        \item Recognize and predict patterns
+        \item Propagation
+        \item Training
+    \end{itemize}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{../assets/nn-simple-example.png}
+    \end{figure}
 \end{frame}
 
 \subsection{Fully connected layer}
 
+\begin{frame}
+    \frametitle{Fully connected layer}
+
+    \begin{itemize}
+        \item Used with convolutional layers
+        \item Linearly seperable
+    \end{itemize}
+
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            Example
+            \begin{figure}
+                \centering
+                \includegraphics[width=0.6\textwidth]{../assets/linear-layer-example.png}
+            \end{figure}
+        \end{column}
+        \pause
+        \begin{column}{0.5\textwidth}
+            General
+            \begin{figure}
+                \centering
+                \includegraphics[width=0.6\textwidth]{../assets/linear-layer.png}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Fully connected layer forward propagation}
+    The value from each input $x_i$ is multiplied with a weight $w_{ij}$ and summed together in output $y_j$.
+    \begin{itemize}
+        \item Bias
+    \end{itemize}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{../assets/linear-layer-linear-propagation.drawio.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Fully connected layer forward propagation}
+
+    The forward propagation can be expressed as the following
+    $$y_j = b_j + \sum^M_{i=1} w_{ji}x_i$$
+    Where $j = 1...M$
+
+    \pause
+    And as an expression for all outputs
+    $$\bm{y} = \bm{b} + \bm{Wx}$$
+\end{frame}
+
 \subsection{Activation functions}
+
+\begin{frame}
+    \frametitle{Activation Functions}
+    Activation functions are applied to each value after a layer
+    \begin{itemize}
+        \item Non-linearity
+        \item Better fitting
+    \end{itemize}
+    \pause
+
+    \begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|}\hline
+    \textbf{Function} & $\bm{\sigma}$ \\\hline
+    tanh     & $\frac{e^x - e^{-y}}{e^x + e^{-y}}$ \\\hline
+    ReLU     & $max(0, y)$ \\\hline
+    sigmoid  & $\frac{1}{1+e^{-y}}$ \\\hline
+    softmax  & $\frac{e^{y'}}{\sum^K_{k=1} e^{y_k}}$ \\\hline
+    \end{tabular}
+    \caption{A list of common activation functions.}
+    \label{tab:activation}
+    \end{table}
+\end{frame}
 
 \subsection{Convolutional layer}
 
+\begin{frame}
+    \frametitle{Convolutional layer}
+    The convolutional layer is used to extract features from a structured data such as images.
+    \begin{itemize}
+        \item More layers $\rightarrow$ more features
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Convolutional layer}
+    \begin{itemize}
+        \item Input
+        \item Channels
+        \item Kernel
+        \item Feature maps
+    \end{itemize}
+    \pause
+    Consider the following input data and kernel
+
+    \begin{figure}
+        \centering
+        \hfill
+        \subfloat[][An example for a $3 \times 3$ input to a convolutional layer]{$\begin{bmatrix}
+            X_{11} & X_{12} & X_{13} \\
+            X_{21} & X_{22} & X_{23} \\
+            X_{31} & X_{32} & X_{33} 
+        \end{bmatrix}$}
+        \hfill
+        \subfloat[][An example for a $2\times 2$ kernel]{$\begin{bmatrix}
+            K_{11} & K_{12} \\
+            K_{21} & K_{22}
+        \end{bmatrix}$}
+        \hfill
+        \null
+        \caption{An example for an input and a kernel to be used in a convolutional layer}
+        \label{fig:conv_input_and_kernel}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Convolutional layer example}
+
+    \begin{figure}
+        \centering
+        $$\begin{bmatrix}
+            \color{red} X_{11} & \color{red} X_{12} & X_{13} \\
+            \color{red} X_{21} & \color{red} X_{22} & X_{23} \\
+            X_{31} & X_{32} & X_{33} 
+        \end{bmatrix} \otimes K \Rightarrow \begin{bmatrix}
+            \color{red} X_{11} K_{11} + X_{12} K_{12} + X_{21} K_{21} + X_{22} K_{22} & \\
+             &
+        \end{bmatrix}$$\\
+        \pause
+        $$\begin{bmatrix}
+            X_{11} & \color{red} X_{12} & \color{red} X_{13} \\
+            X_{21} & \color{red} X_{22} & \color{red} X_{23} \\
+            X_{31} & X_{32} & X_{33} 
+        \end{bmatrix} \otimes K \Rightarrow \begin{bmatrix}
+             Y''_{11} &\color{red} X_{12} K_{12} + X_{13} K_{13} + X_{22} K_{22} + X_{23} K_{23} \\
+             &
+        \end{bmatrix}$$\\
+        \pause
+        $$\begin{bmatrix}
+            X_{11} & X_{12} & X_{13} \\
+            \color{red} X_{21} & \color{red} X_{22} & X_{23} \\
+            \color{red} X_{31} & \color{red} X_{32} & X_{33}
+        \end{bmatrix} \otimes K \Rightarrow \begin{bmatrix}
+            Y''_{11} & Y''_{12} \\
+            \color{red} X_{21} K_{21} + X_{22} K_{22} + X_{31} K_{31} + X_{32} K_{32} & 
+        \end{bmatrix}$$\\
+        \pause
+        $$\begin{bmatrix}
+            X_{11} & X_{12} & X_{13} \\
+            X_{21} & \color{red} X_{22} & \color{red} X_{23} \\
+            X_{31} & \color{red} X_{32} & \color{red} X_{33}
+        \end{bmatrix} \otimes K \Rightarrow \begin{bmatrix}
+             Y''_{11} & Y''_{12} \\
+             Y''_{21} & \color{red} X_{22} K_{22} + X_{23} K_{23} + X_{32} K_{32} + X_{33} K_{33}
+        \end{bmatrix}$$\\
+        \label{fig:conv_operation}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Convolutional layer stride example}
+    A stride can also be used to reduce number of operations and downsample.
+
+    \begin{figure}
+        \centering
+        $$\begin{bmatrix}
+            \color{red} X_{11} & \color{red} X_{12} & X_{13} & X_{14} \\
+            \color{red} X_{21} & \color{red} X_{22} & X_{23} & X_{24} \\
+            X_{31} & X_{32} & X_{33} & X_{34}
+        \end{bmatrix} \otimes K \Rightarrow ...$$\\
+        $$\begin{bmatrix}
+            X_{11} & X_{12} & \color{red} X_{13} & \color{red} X_{14} \\
+            X_{21} & X_{22} & \color{red} X_{23} & \color{red} X_{24} \\
+            X_{31} & X_{32} & X_{33} & X_{34}
+        \end{bmatrix} \otimes K \Rightarrow ...$$\\
+        \label{fig:conv_operation_with_stride}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Convolutional layer generalized}
+    The outputs can be described as the following expression
+    $$Y_{ij} = b + \sum^{C_{in}}_{c = 1} \sum^{i \cdot s_x + k_x}_{i_2 = i \cdot s_x} \sum^{j \cdot s_y + k_y}_{j_2 = j \cdot s_y} X_{ci_2j_2} K_{ci_2j_2} $$
+    \pause
+
+    \begin{description}
+        \item[$C_{in}$] The number of in channels
+        \item[$s_x$ $s_y$] The stride for each dimension
+        \item[$k_x$ $k_y$] The size of the kernel
+    \end{description}
+    \pause
+
+    $$i = 1, ..., \left\lfloor\frac{n_x - k_x}{s_x}\right\rfloor + 1$$
+    $$j = 1, ..., \left\lfloor\frac{n_y - k_y}{s_y}\right\rfloor + 1$$
+
+    \begin{description}
+        \item[$n_x$ $n_y$] The size of the input
+    \end{description}
+\end{frame}
+
 \subsection{Maxpooling layer}
+
+\begin{frame}
+    \frametitle{Maxpooling layer}
+
+    \begin{itemize}
+        \item Downsampling to avoid overfitting
+        \item Feature maps
+        \pause
+        \item Partitioning $\rightarrow$ max
+    \end{itemize}
+
+
+    \begin{figure}[htpb]
+        \centering
+        $$\begin{bmatrix}
+            \color{red}1 & \color{red} 2 & \color{green} 3 & \color{green} 4 \\
+            \color{red}8 & \color{red}9 & \color{green}10 & \color{green}11 \\
+            \color{blue}7 & \color{blue}1 & \color{magenta}2 & \color{magenta}6 \\
+            \color{blue}2 & \color{blue}1 & \color{magenta}9 & \color{magenta}3
+            \end{bmatrix} \Rightarrow \begin{bmatrix}
+            \color{red}9 & \color{green}11 \\
+            \color{blue}7 & \color{magenta}9
+            \end{bmatrix}$$
+        \caption{Illustration of a max pooling operation on a $4\times 4$ matrix with a $2\times 2$ window. The window will process the numbers of the same color and output the same color.}
+        \label{fig:max_pool}
+    \end{figure}
+\end{frame}
 
 \subsection{Loss functions}
 
+\begin{frame}
+    \frametitle{Loss functions}
+
+    \begin{itemize}
+        \item How close at predicting
+        \item important for training
+    \end{itemize}
+
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Loss function}  & $L\bm{(y, l)$} \\ \hline
+        Cross entropy  & $-\sum^K_{k=1}(l_k\ ln\ y_k)$ \\ \hline
+        Mean squared error & $\frac{1}{K}\sum^K_{k=1}(y_k-l_k)^2$ \\ \hline
+        \end{tabular}
+        \caption{Some common loss functions, where $\bm{y}$ is the output of the network and $\bm{l}$ is the expected values or labels}
+        \label{tab:loss}
+    \end{table}
+\end{frame}
+
 \subsection{Network training}
+
+\begin{frame}
+    \frametitle{Network training}
+
+    \begin{itemize}
+        \item Fitting the network to some data
+        \item Predicting
+    \end{itemize}
+
+    \pause
+
+    The network can be trained with the help of a loss function and gradient descent
+
+    \pause
+
+    Consider the loss function of a network
+    $$L(f(\bm{x}, \bm{W}), \bm{l})$$
+    Note $f$ is the forward propagation function of the network,
+    \pause
+    while $\bm{l}$ is the labels.
+
+    \pause
+    Since the loss will not get below zero, we can attempt to find a minima of the loss function.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Network training}
+
+    By using gradient descent, we might find a minima of the loss function.
+    \pause
+    First we find the gradient with respect to $\bm{W}$.
+    $$\nabla_{\bm{W}} L(f(\bm{x}, \bm{W}), \bm{l})$$
+    \pause
+    By using gradient descent and always updating $\bm{W}$, we might find some optimal values for $\bm{W}$.
+    \pause
+
+    We initialize $\bm{W}_0$ to some random weights. Then
+    \pause
+    $$\bm{W}_1 \leftarrow \bm{W}_0 - \nabla_{\bm{W}}L(f(\bm{x}, \bm{W}_0), \bm{l})$$
+    \pause
+    $$\bm{W}_2 \leftarrow \bm{W}_0 - \nabla_{\bm{W}}L(f(\bm{x}, \bm{W}_1), \bm{l})$$
+    ...
+\end{frame}
 
 \subsection{Exploding/vanishing gradients}
 
@@ -305,6 +619,14 @@ p3 = point((x3, f(x3)), color="red", size=30)
 \section{Design and implementation}
 
 \section{Future work and conclusion}
+
+\section{Benchmarking}
+
+\begin{frame}
+    \begin{itemize}
+        \item Attempted to benchmark with the MNIST numbers dataset
+    \end{itemize}
+\end{frame}
 
 \subsection{Future work}
 
